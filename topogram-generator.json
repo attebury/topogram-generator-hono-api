@@ -1,0 +1,28 @@
+{
+  "id": "@attebury/topogram-generator-hono-api",
+  "version": "1",
+  "surface": "api",
+  "targetKind": "api",
+  "projectionPlatforms": [
+    "api"
+  ],
+  "inputs": [
+    "server-contract",
+    "api-contracts"
+  ],
+  "outputs": [
+    "api-service"
+  ],
+  "stack": {
+    "runtime": "node",
+    "framework": "hono",
+    "language": "typescript"
+  },
+  "capabilities": {
+    "http": true,
+    "stateless": true,
+    "persistence": false
+  },
+  "source": "package",
+  "package": "@attebury/topogram-generator-hono-api"
+}

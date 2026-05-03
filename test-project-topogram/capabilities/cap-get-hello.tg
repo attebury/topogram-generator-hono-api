@@ -1,0 +1,9 @@
+capability cap_get_hello {
+  name "Get Hello"
+  description "Returns a hello API response"
+
+  actors [actor_client]
+  output [shape_output_hello]
+
+  status active
+}

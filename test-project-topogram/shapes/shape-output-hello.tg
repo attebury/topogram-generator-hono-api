@@ -1,0 +1,10 @@
+shape shape_output_hello {
+  name "Hello API Output"
+  description "Response shape for the hello API"
+
+  fields {
+    message text required
+  }
+
+  status active
+}

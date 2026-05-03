@@ -1,0 +1,6 @@
+actor actor_client {
+  name "Client"
+  description "Client calling the generated hello API"
+
+  status active
+}

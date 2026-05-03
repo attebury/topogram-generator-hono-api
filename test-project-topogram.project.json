@@ -1,0 +1,24 @@
+{
+  "version": "0.1",
+  "outputs": {
+    "app": {
+      "path": "./app",
+      "ownership": "generated"
+    }
+  },
+  "topology": {
+    "components": [
+      {
+        "id": "app_api",
+        "type": "api",
+        "projection": "proj_api",
+        "generator": {
+          "id": "@attebury/topogram-generator-hono-api",
+          "version": "1",
+          "package": "@attebury/topogram-generator-hono-api"
+        },
+        "port": 3000
+      }
+    ]
+  }
+}

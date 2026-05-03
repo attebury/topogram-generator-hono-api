@@ -1,0 +1,14 @@
+projection proj_api {
+  name "Hello API"
+  description "HTTP API realization for the hello API generator"
+  platform dotnet
+
+  realizes [cap_get_hello]
+  outputs [request_contracts, response_contracts, endpoints]
+
+  http {
+    cap_get_hello method GET path /hello success 200 auth none request none
+  }
+
+  status active
+}
