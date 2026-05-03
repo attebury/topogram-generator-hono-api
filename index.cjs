@@ -70,17 +70,31 @@ function generate(context) {
   if (!projection || !Array.isArray(projection.http)) {
     throw new Error("Hono API generator requires an API projection with http routes.");
   }
+  const hasDatabase = Boolean(context.component && context.component.databaseComponent);
   const files = {
     "package.json": renderPackageJson(),
     "tsconfig.json": renderTsconfig(),
     "src/index.ts": renderIndexTs(projection, context.component || {})
   };
+  if (hasDatabase) {
+    files["src/lib/persistence/README.md"] = "This service is wired to a Topogram database component. Replace this package-backed scaffold with repository code or implementation provider output as needed.\\n";
+    files["prisma/schema.prisma"] = `generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+`;
+  }
   return {
     files,
     artifacts: {
       generator: manifest.id,
       projection: projection.id,
-      routeCount: projection.http.length
+      routeCount: projection.http.length,
+      persistence: hasDatabase
     },
     diagnostics: []
   };

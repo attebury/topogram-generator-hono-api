@@ -53,6 +53,14 @@ assert.equal(fs.existsSync(path.join(projectRoot, "app", ".topogram-generated.js
 assert.match(fs.readFileSync(path.join(apiRoot, "src", "index.ts"), "utf8"), /new Hono/);
 assert.match(fs.readFileSync(path.join(apiRoot, "src", "index.ts"), "utf8"), /app\.get\("\/hello"/);
 assert.match(fs.readFileSync(path.join(apiRoot, "package.json"), "utf8"), /"hono"/);
+const adapter = await import(path.join(root, "index.cjs"));
+const dbBacked = adapter.default.generate({
+  graph: {},
+  projection: { id: "proj_api", http: [{ method: "GET", path: "/hello", capabilityId: "cap_get_hello", success: 200 }] },
+  component: { id: "app_api", type: "api", port: 3000, databaseComponent: { id: "app_postgres" } }
+});
+assert.equal(typeof dbBacked.files["prisma/schema.prisma"], "string", "Expected DB-backed Hono generation to include persistence scaffold");
+assert.equal(dbBacked.artifacts.persistence, true);
 
 console.log("Package-backed Hono API generator smoke passed.");
 

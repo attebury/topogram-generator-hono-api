@@ -21,7 +21,7 @@
   "capabilities": {
     "http": true,
     "stateless": true,
-    "persistence": false
+    "persistence": true
   },
   "source": "package",
   "package": "@attebury/topogram-generator-hono-api"
