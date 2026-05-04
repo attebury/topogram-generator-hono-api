@@ -54,6 +54,21 @@ assert.match(fs.readFileSync(path.join(apiRoot, "src", "index.ts"), "utf8"), /ne
 assert.match(fs.readFileSync(path.join(apiRoot, "src", "index.ts"), "utf8"), /app\.get\("\/hello"/);
 assert.match(fs.readFileSync(path.join(apiRoot, "package.json"), "utf8"), /"hono"/);
 assert.equal(fs.existsSync(path.join(apiRoot, "src", "lib", "topogram", "server-contract.json")), true);
+const generatorSource = fs.readFileSync(path.join(root, "index.cjs"), "utf8");
+assert.match(
+  generatorSource,
+  /body: \{ ok: false, error: \{ code: error\.code, message: error\.message \} \}/,
+  "Expected provider-backed generated errors to use the contract error envelope"
+);
+assert.match(
+  generatorSource,
+  /Number\(requirement\.error \|\| 428\), requirement\.code \|\| "missing_required_header"/,
+  "Expected provider-backed generated header precondition errors to honor route metadata"
+);
+assert.ok(
+  generatorSource.includes('throw new HttpError(400, \\`\\${route.capabilityId || "capability"}_invalid_request\\`, \\`Missing required field \\${field.name}\\`);'),
+  "Expected provider-backed missing required fields to use capability-specific invalid request codes"
+);
 const adapter = await import(path.join(root, "index.cjs"));
 const dbBacked = adapter.default.generate({
   graph: {},
