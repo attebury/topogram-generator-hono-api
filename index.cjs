@@ -170,13 +170,66 @@ function prismaDbAttr(column) {
 function tablesForContext(context) {
   const dbContract = context.contracts?.db;
   const rawTables = Array.isArray(dbContract?.tables) ? dbContract.tables : [];
-  return rawTables.map((table) => ({
+  const tables = rawTables.length > 0 ? rawTables : tablesFromGraph(context);
+  return tables.map((table) => ({
     ...table,
     columns: (table.columns || []).map((column) => {
       const enumStatement = enumForType(context.graph || {}, column.fieldType);
       return enumStatement ? { ...column, enumValues: enumStatement.values || [] } : column;
     })
   }));
+}
+
+function tablesFromGraph(context) {
+  const graph = context.graph || {};
+  const statements = statementsArray(graph);
+  const byId = new Map(statements.map((statement) => [statement.id, statement]));
+  const dbProjectionId = context.component?.databaseComponent?.projection?.id || context.component?.databaseComponent?.projection || context.component?.database || null;
+  const projection = typeof dbProjectionId === "string"
+    ? statements.find((statement) => statement.kind === "projection" && statement.id === dbProjectionId)
+    : context.component?.databaseComponent?.projection;
+  if (!projection) return [];
+  const tableByEntity = new Map((projection.dbTables || []).map((entry) => [entry.entity?.id, entry.table]));
+  const columnByEntityField = new Map((projection.dbColumns || []).map((entry) => [`${entry.entity?.id}:${entry.field}`, entry.column]));
+  const primaryByEntity = new Map();
+  for (const key of projection.dbKeys || []) {
+    if (key.keyType === "primary") primaryByEntity.set(key.entity?.id, key.fields || []);
+  }
+  const indexesByEntity = new Map();
+  for (const index of projection.dbIndexes || []) {
+    if (!indexesByEntity.has(index.entity?.id)) indexesByEntity.set(index.entity?.id, []);
+    indexesByEntity.get(index.entity?.id).push({ type: index.indexType || "index", fields: index.fields || [] });
+  }
+  const relationsByEntity = new Map();
+  for (const relation of projection.dbRelations || []) {
+    if (!relationsByEntity.has(relation.entity?.id)) relationsByEntity.set(relation.entity?.id, []);
+    relationsByEntity.get(relation.entity?.id).push({
+      field: relation.field,
+      onDelete: relation.onDelete || null,
+      target: relation.target
+    });
+  }
+  return (projection.realizes || [])
+    .map((entry) => byId.get(entry.id || entry.target?.id))
+    .filter(Boolean)
+    .map((entity) => {
+      const indexes = indexesByEntity.get(entity.id) || [];
+      return {
+        table: tableByEntity.get(entity.id) || slug(entity.name || entity.id),
+        entity: { id: entity.id, name: entity.name },
+        columns: (entity.fields || []).map((field) => ({
+          name: columnByEntityField.get(`${entity.id}:${field.name}`) || field.name,
+          sourceField: field.name,
+          fieldType: field.fieldType || field.type || "text",
+          requiredness: field.requiredness || (field.required === false ? "optional" : "required"),
+          defaultValue: field.defaultValue ?? null
+        })),
+        primaryKey: primaryByEntity.get(entity.id) || (entity.keys || []).find((key) => key.type === "primary")?.fields || [],
+        uniques: indexes.filter((index) => index.type === "unique").map((index) => index.fields),
+        indexes,
+        relations: relationsByEntity.get(entity.id) || []
+      };
+    });
 }
 
 function renderProviderPrismaSchema(context) {
