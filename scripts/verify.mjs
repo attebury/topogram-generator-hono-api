@@ -53,6 +53,7 @@ assert.equal(fs.existsSync(path.join(projectRoot, "app", ".topogram-generated.js
 assert.match(fs.readFileSync(path.join(apiRoot, "src", "index.ts"), "utf8"), /new Hono/);
 assert.match(fs.readFileSync(path.join(apiRoot, "src", "index.ts"), "utf8"), /app\.get\("\/hello"/);
 assert.match(fs.readFileSync(path.join(apiRoot, "package.json"), "utf8"), /"hono"/);
+assert.equal(fs.existsSync(path.join(apiRoot, "src", "lib", "topogram", "server-contract.json")), true);
 const adapter = await import(path.join(root, "index.cjs"));
 const dbBacked = adapter.default.generate({
   graph: {},
@@ -60,6 +61,9 @@ const dbBacked = adapter.default.generate({
   component: { id: "app_api", type: "api", port: 3000, databaseComponent: { id: "app_postgres" } }
 });
 assert.equal(typeof dbBacked.files["prisma/schema.prisma"], "string", "Expected DB-backed Hono generation to include persistence scaffold");
+assert.equal(typeof dbBacked.files["src/lib/persistence/repository.ts"], "string", "Expected DB-backed Hono generation to include repository boundary");
+assert.match(dbBacked.files["src/index.ts"], /repository\.describe/);
+assert.match(dbBacked.files["package.json"], /@prisma\/client/);
 assert.equal(dbBacked.artifacts.persistence, true);
 
 console.log("Package-backed Hono API generator smoke passed.");
