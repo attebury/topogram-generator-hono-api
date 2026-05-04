@@ -8,7 +8,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const workRoot = path.join(root, ".tmp", "verify");
 const packRoot = path.join(workRoot, "pack");
 const npmCache = path.join(workRoot, "npm-cache");
-const cliPackageSpec = process.env.TOPOGRAM_CLI_PACKAGE_SPEC || `file:${path.resolve(root, "../topogram/engine")}`;
+const cliPackageSpec = process.env.TOPOGRAM_CLI_PACKAGE_SPEC || defaultCliPackageSpec();
 const cliDependencySpec = dependencySpecFor("@attebury/topogram", cliPackageSpec);
 
 fs.rmSync(workRoot, { recursive: true, force: true });
@@ -47,6 +47,8 @@ run(topogramBin, ["check"], { cwd: projectRoot });
 
 console.log("Generating app with package-backed generator...");
 run(topogramBin, ["generate"], { cwd: projectRoot });
+console.log("Compiling generated app bundle...");
+run("npm", ["--prefix", path.join(projectRoot, "app"), "run", "compile"], { cwd: projectRoot });
 
 const apiRoot = path.join(projectRoot, "app", "apps", "services", "app_api");
 assert.equal(fs.existsSync(path.join(projectRoot, "app", ".topogram-generated.json")), true);
@@ -130,4 +132,12 @@ function dependencySpecFor(packageName, packageSpec) {
     return packageSpec.slice(prefix.length);
   }
   return packageSpec;
+}
+
+function defaultCliPackageSpec() {
+  const version = fs.readFileSync(path.join(root, "topogram-cli.version"), "utf8").trim();
+  if (!version) {
+    throw new Error("topogram-cli.version must contain the Topogram CLI version used by package smoke verification.");
+  }
+  return `@attebury/topogram@${version}`;
 }

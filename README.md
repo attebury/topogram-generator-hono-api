@@ -41,10 +41,11 @@ npm run check
 
 The smoke test packs this generator, installs it beside `@attebury/topogram` in
 a temporary consumer project, runs `topogram check`, runs `topogram generate`,
-and verifies the generated Hono API service files.
+compiles the generated app bundle, and verifies the generated Hono API service
+files.
 
 Use a different Topogram CLI package with:
 
 ```bash
-TOPOGRAM_CLI_PACKAGE_SPEC=@attebury/topogram@0.3.20 npm run check
+TOPOGRAM_CLI_PACKAGE_SPEC=@attebury/topogram@latest npm run check
 ```
