@@ -46,5 +46,5 @@ and verifies the generated Hono API service files.
 Use a different Topogram CLI package with:
 
 ```bash
-TOPOGRAM_CLI_PACKAGE_SPEC=@attebury/topogram@0.3.16 npm run check
+TOPOGRAM_CLI_PACKAGE_SPEC=@attebury/topogram@0.3.20 npm run check
 ```
