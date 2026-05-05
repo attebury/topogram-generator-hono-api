@@ -39,6 +39,9 @@ From this repo:
 npm run check
 ```
 
+See [`CONSUMER_PROOF.md`](./CONSUMER_PROOF.md) for the verification standard
+this repo must keep before publishing.
+
 The smoke test packs this generator, installs it beside `@attebury/topogram` in
 a temporary consumer project, runs `topogram check`, runs `topogram generate`,
 compiles the generated app bundle, and verifies the generated Hono API service
