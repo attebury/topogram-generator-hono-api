@@ -13,9 +13,9 @@
         "type": "api",
         "projection": "proj_api",
         "generator": {
-          "id": "@attebury/topogram-generator-hono-api",
+          "id": "@topogram/generator-hono-api",
           "version": "1",
-          "package": "@attebury/topogram-generator-hono-api"
+          "package": "@topogram/generator-hono-api"
         },
         "port": 3000
       }

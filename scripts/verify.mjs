@@ -9,7 +9,7 @@ const workRoot = path.join(root, ".tmp", "verify");
 const packRoot = path.join(workRoot, "pack");
 const npmCache = path.join(workRoot, "npm-cache");
 const cliPackageSpec = process.env.TOPOGRAM_CLI_PACKAGE_SPEC || defaultCliPackageSpec();
-const cliDependencySpec = dependencySpecFor("@attebury/topogram", cliPackageSpec);
+const cliDependencySpec = dependencySpecFor("@topogram/cli", cliPackageSpec);
 
 fs.rmSync(workRoot, { recursive: true, force: true });
 fs.mkdirSync(packRoot, { recursive: true });
@@ -31,11 +31,10 @@ writeJson(path.join(projectRoot, "package.json"), {
   private: true,
   type: "module",
   devDependencies: {
-    "@attebury/topogram": cliDependencySpec,
-    "@attebury/topogram-generator-hono-api": `file:${generatorTarball}`
+    "@topogram/cli": cliDependencySpec,
+    "@topogram/generator-hono-api": `file:${generatorTarball}`
   }
 });
-writeNpmrc(projectRoot);
 
 console.log("Installing consumer dependencies...");
 run("npm", ["install"], { cwd: projectRoot, quiet: true });
@@ -115,17 +114,6 @@ function writeJson(filePath, value) {
   fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
 }
 
-function writeNpmrc(projectRoot) {
-  const lines = [
-    "@attebury:registry=https://npm.pkg.github.com"
-  ];
-  if (process.env.NODE_AUTH_TOKEN) {
-    lines.push(`//npm.pkg.github.com/:_authToken=${process.env.NODE_AUTH_TOKEN}`);
-  }
-  lines.push("");
-  fs.writeFileSync(path.join(projectRoot, ".npmrc"), lines.join("\n"), "utf8");
-}
-
 function dependencySpecFor(packageName, packageSpec) {
   const prefix = `${packageName}@`;
   if (packageSpec.startsWith(prefix)) {
@@ -139,5 +127,5 @@ function defaultCliPackageSpec() {
   if (!version) {
     throw new Error("topogram-cli.version must contain the Topogram CLI version used by package smoke verification.");
   }
-  return `@attebury/topogram@${version}`;
+  return `@topogram/cli@${version}`;
 }

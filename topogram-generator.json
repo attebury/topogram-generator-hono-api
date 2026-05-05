@@ -1,5 +1,5 @@
 {
-  "id": "@attebury/topogram-generator-hono-api",
+  "id": "@topogram/generator-hono-api",
   "version": "1",
   "surface": "api",
   "targetKind": "api",
@@ -24,5 +24,5 @@
     "persistence": true
   },
   "source": "package",
-  "package": "@attebury/topogram-generator-hono-api"
+  "package": "@topogram/generator-hono-api"
 }

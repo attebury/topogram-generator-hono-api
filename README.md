@@ -8,7 +8,7 @@ projection into a Hono service.
 
 ## Manifest
 
-- Generator id: `@attebury/topogram-generator-hono-api`
+- Generator id: `@topogram/generator-hono-api`
 - Surface: `api`
 - Projection platform: `api`
 - Stack: Hono + TypeScript
@@ -23,9 +23,9 @@ Topology binding:
   "type": "api",
   "projection": "proj_api",
   "generator": {
-    "id": "@attebury/topogram-generator-hono-api",
+    "id": "@topogram/generator-hono-api",
     "version": "1",
-    "package": "@attebury/topogram-generator-hono-api"
+    "package": "@topogram/generator-hono-api"
   },
   "port": 3000
 }
@@ -42,7 +42,7 @@ npm run check
 See [`CONSUMER_PROOF.md`](./CONSUMER_PROOF.md) for the verification standard
 this repo must keep before publishing.
 
-The smoke test packs this generator, installs it beside `@attebury/topogram` in
+The smoke test packs this generator, installs it beside `@topogram/cli` in
 a temporary consumer project, runs `topogram check`, runs `topogram generate`,
 compiles the generated app bundle, and verifies the generated Hono API service
 files.
@@ -50,5 +50,5 @@ files.
 Use a different Topogram CLI package with:
 
 ```bash
-TOPOGRAM_CLI_PACKAGE_SPEC=@attebury/topogram@latest npm run check
+TOPOGRAM_CLI_PACKAGE_SPEC=@topogram/cli@latest npm run check
 ```
