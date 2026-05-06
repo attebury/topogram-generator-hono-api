@@ -128,8 +128,8 @@ function assertNoEnvFilesInTarball(tarballPath, packageName) {
   const envFiles = listing.stdout
     .split(/\r?\n/)
     .filter(Boolean)
-    .filter((entry) => path.posix.basename(entry).startsWith(".env"));
-  assert.deepEqual(envFiles, [], `${packageName} package must not publish .env* files`);
+    .filter((entry) => /^(\.env.*|\.npmrc|\.DS_Store|.*\.(pem|key)|id_rsa|secrets\..*|credentials\..*)$/.test(path.posix.basename(entry)));
+  assert.deepEqual(envFiles, [], `${packageName} package must not publish restricted local or secret files`);
 }
 
 function defaultCliPackageSpec() {
