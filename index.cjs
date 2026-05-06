@@ -50,16 +50,29 @@ function routeSuccess(route) {
   return Number(route.success || route.successStatus || 200);
 }
 
-function renderIndexTs(projection, component, { hasDatabase = false } = {}) {
+function routeCapabilityId(route) {
+  const capabilityId = route.capabilityId || route.capability?.id || route.capability;
+  if (!capabilityId) throw new Error("Hono API generator requires each route to carry a capability id. Use the normalized server contract routes.");
+  return capabilityId;
+}
+
+function routesForContext(context, projection) {
+  const contractRoutes = context.contracts?.server?.routes;
+  return Array.isArray(contractRoutes) && contractRoutes.length > 0
+    ? contractRoutes
+    : projection.http || [];
+}
+
+function renderIndexTs(projection, component, routes, { hasDatabase = false } = {}) {
   const persistenceImport = hasDatabase ? 'import { createRepository } from "./lib/persistence/repository.js";\n' : "";
   const persistenceSetup = hasDatabase ? "const repository = createRepository();\n" : "";
-  const routes = (projection.http || []).map((route) => {
+  const routeBlocks = routes.map((route) => {
     const method = String(route.method || "GET").toLowerCase();
     const bodyLine = ["post", "put", "patch"].includes(method) ? "    body: await c.req.json().catch(() => null)," : "";
     const persistenceLine = hasDatabase ? "    persistence: repository.describe()," : "";
     return `app.${method}("${routePath(route.path)}", async (c) => c.json({
   ok: true,
-  capability: "${route.capabilityId}",
+  capability: "${routeCapabilityId(route)}",
   input: {
     params: c.req.param(),
     query: c.req.query(),${bodyLine ? `\n${bodyLine}` : ""}
@@ -76,7 +89,7 @@ ${persistenceSetup}
 
 app.get("/health", (c) => c.json({ ok: true, service: "${projection.id}" }));
 app.get("/ready", (c) => c.json({ ok: true, ready: true, service: "${projection.id}", database: ${hasDatabase ? "repository.describe()" : "null"} }));
-${routes}
+${routeBlocks}
 
 const port = Number(process.env.PORT || ${port});
 serve({ fetch: app.fetch, port });
@@ -701,7 +714,8 @@ function generateProviderBacked(context) {
 
 function generate(context) {
   const projection = context.projection;
-  if (!projection || !Array.isArray(projection.http)) {
+  const routes = projection ? routesForContext(context, projection) : [];
+  if (!projection || routes.length === 0) {
     throw new Error("Hono API generator requires an API projection with http routes.");
   }
   const hasDatabase = Boolean(context.component && context.component.databaseComponent);
@@ -713,7 +727,7 @@ function generate(context) {
         artifacts: {
           generator: manifest.id,
           projection: projection.id,
-          routeCount: projection.http.length,
+          routeCount: routes.length,
           persistence: true,
           implementationProvider: true
         },
@@ -724,7 +738,7 @@ function generate(context) {
   const files = {
     "package.json": renderPackageJson({ hasDatabase }),
     "tsconfig.json": renderTsconfig(),
-    "src/index.ts": renderIndexTs(projection, context.component || {}, { hasDatabase }),
+    "src/index.ts": renderIndexTs(projection, context.component || {}, routes, { hasDatabase }),
     "src/lib/topogram/server-contract.json": `${JSON.stringify(context.contracts?.server || { projection }, null, 2)}\n`,
     "src/lib/topogram/api-contracts.json": `${JSON.stringify(context.contracts?.api || {}, null, 2)}\n`
   };
@@ -739,7 +753,7 @@ function generate(context) {
     artifacts: {
       generator: manifest.id,
       projection: projection.id,
-      routeCount: projection.http.length,
+      routeCount: routes.length,
       persistence: hasDatabase
     },
     diagnostics: []

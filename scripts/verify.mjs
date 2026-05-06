@@ -53,7 +53,10 @@ run("npm", ["--prefix", path.join(projectRoot, "app"), "run", "compile"], { cwd:
 const apiRoot = path.join(projectRoot, "app", "apps", "services", "app_api");
 assert.equal(fs.existsSync(path.join(projectRoot, "app", ".topogram-generated.json")), true);
 assert.match(fs.readFileSync(path.join(apiRoot, "src", "index.ts"), "utf8"), /new Hono/);
-assert.match(fs.readFileSync(path.join(apiRoot, "src", "index.ts"), "utf8"), /app\.get\("\/hello"/);
+const generatedIndexTs = fs.readFileSync(path.join(apiRoot, "src", "index.ts"), "utf8");
+assert.match(generatedIndexTs, /app\.get\("\/hello"/);
+assert.match(generatedIndexTs, /capability: "cap_get_hello"/);
+assert.doesNotMatch(generatedIndexTs, /capability: "undefined"/);
 assert.match(fs.readFileSync(path.join(apiRoot, "package.json"), "utf8"), /"hono"/);
 assert.equal(fs.existsSync(path.join(apiRoot, "src", "lib", "topogram", "server-contract.json")), true);
 const generatorSource = fs.readFileSync(path.join(root, "index.cjs"), "utf8");
