@@ -20,6 +20,7 @@ const pack = run("npm", ["pack", "--silent", "--pack-destination", packRoot], { 
 const tarballName = pack.stdout.trim().split(/\r?\n/).filter(Boolean).at(-1);
 const generatorTarball = path.join(packRoot, tarballName);
 assert.equal(fs.existsSync(generatorTarball), true, `Expected ${generatorTarball}`);
+assertNoEnvFilesInTarball(generatorTarball, "@topogram/generator-hono-api");
 
 const projectRoot = path.join(workRoot, "consumer");
 fs.mkdirSync(projectRoot, { recursive: true });
@@ -120,6 +121,15 @@ function dependencySpecFor(packageName, packageSpec) {
     return packageSpec.slice(prefix.length);
   }
   return packageSpec;
+}
+
+function assertNoEnvFilesInTarball(tarballPath, packageName) {
+  const listing = run("tar", ["-tzf", tarballPath], { quiet: true });
+  const envFiles = listing.stdout
+    .split(/\r?\n/)
+    .filter(Boolean)
+    .filter((entry) => path.posix.basename(entry).startsWith(".env"));
+  assert.deepEqual(envFiles, [], `${packageName} package must not publish .env* files`);
 }
 
 function defaultCliPackageSpec() {
