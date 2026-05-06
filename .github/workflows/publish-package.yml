@@ -39,6 +39,14 @@ jobs:
         run: |
           TOPOGRAM_CLI_VERSION="$(cat topogram-cli.version)"
           TOPOGRAM_CLI_PACKAGE_SPEC="@topogram/cli@$TOPOGRAM_CLI_VERSION" npm run check
+      - name: Check npm publish token
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -z "$NODE_AUTH_TOKEN" ]; then
+            echo "Missing NPM_TOKEN repository secret with npmjs publish access for @topogram/generator-hono-api."
+            exit 1
+          fi
       - name: Publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
