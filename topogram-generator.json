@@ -2,10 +2,6 @@
   "id": "@topogram/generator-hono-api",
   "version": "1",
   "surface": "api",
-  "targetKind": "api",
-  "projectionPlatforms": [
-    "api"
-  ],
   "inputs": [
     "server-contract",
     "api-contracts"
@@ -24,5 +20,11 @@
     "persistence": true
   },
   "source": "package",
-  "package": "@topogram/generator-hono-api"
+  "package": "@topogram/generator-hono-api",
+  "runtimeKinds": [
+    "api_service"
+  ],
+  "projectionTypes": [
+    "api_contract"
+  ]
 }

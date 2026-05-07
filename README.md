@@ -3,14 +3,14 @@
 Package-backed Topogram generator for stateless Hono API services.
 
 This package proves the API generator-pack boundary: Topogram core resolves the
-API topology component and normalized contracts, then this package turns the API
+API topology widget and normalized contracts, then this package turns the API
 projection into a Hono service.
 
 ## Manifest
 
 - Generator id: `@topogram/generator-hono-api`
 - Surface: `api`
-- Projection platform: `api`
+- Projection type: `api`
 - Stack: Hono + TypeScript
 - Package manifest: `topogram-generator.json`
 - Adapter export: `index.cjs`

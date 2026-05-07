@@ -7,17 +7,17 @@
     }
   },
   "topology": {
-    "components": [
+    "runtimes": [
       {
         "id": "app_api",
-        "type": "api",
         "projection": "proj_api",
         "generator": {
           "id": "@topogram/generator-hono-api",
           "version": "1",
           "package": "@topogram/generator-hono-api"
         },
-        "port": 3000
+        "port": 3000,
+        "kind": "api_service"
       }
     ]
   }
