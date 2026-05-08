@@ -63,7 +63,7 @@ function routesForContext(context, projection) {
     : projection.endpoints || [];
 }
 
-function renderIndexTs(projection, widget, routes, { hasDatabase = false } = {}) {
+function renderIndexTs(projection, runtime, routes, { hasDatabase = false } = {}) {
   const persistenceImport = hasDatabase ? 'import { createRepository } from "./lib/persistence/repository.js";\n' : "";
   const persistenceSetup = hasDatabase ? "const repository = createRepository();\n" : "";
   const routeBlocks = routes.map((route) => {
@@ -79,7 +79,7 @@ function renderIndexTs(projection, widget, routes, { hasDatabase = false } = {})
   },${persistenceLine ? `\n${persistenceLine}` : ""}
 }, ${routeSuccess(route)} as any));`;
   }).join("\n");
-  const port = Number(widget?.port || 3000);
+  const port = Number(runtime?.port || 3000);
   return `import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 ${persistenceImport}
@@ -97,8 +97,8 @@ console.log(\`${projection.id} listening on http://localhost:\${port}\`);
 `;
 }
 
-function renderPersistenceRepository(widget) {
-  const dbId = widget?.databaseComponent?.id || widget?.database || "database";
+function renderPersistenceRepository(runtime) {
+  const dbId = runtime?.databaseComponent?.id || runtime?.database || "database";
   return `export function createRepository() {
   return {
     describe() {
@@ -112,8 +112,9 @@ function renderPersistenceRepository(widget) {
 `;
 }
 
-function renderPrismaSchema(widget) {
-  const provider = widget?.databaseComponent?.projection?.type === "db_sqlite" ? "sqlite" : "postgresql";
+function renderPrismaSchema(runtime) {
+  const dbGeneratorId = runtime?.databaseComponent?.generator?.id || runtime?.databaseComponent?.generatorId || "";
+  const provider = String(dbGeneratorId).includes("sqlite") ? "sqlite" : "postgresql";
   return `generator client {
   provider = "prisma-client-js"
 }
@@ -194,13 +195,14 @@ function tablesForContext(context) {
 }
 
 function tablesFromGraph(context) {
+  const runtime = context.runtime || {};
   const graph = context.graph || {};
   const statements = statementsArray(graph);
   const byId = new Map(statements.map((statement) => [statement.id, statement]));
-  const dbProjectionId = (context.runtime || context.component)?.databaseComponent?.projection?.id || (context.runtime || context.component)?.databaseComponent?.projection || (context.runtime || context.component)?.database || null;
+  const dbProjectionId = runtime.databaseComponent?.projection?.id || runtime.databaseComponent?.projection || runtime.database || null;
   const projection = typeof dbProjectionId === "string"
     ? statements.find((statement) => statement.kind === "projection" && statement.id === dbProjectionId)
-    : (context.runtime || context.component)?.databaseComponent?.projection;
+    : runtime.databaseComponent?.projection;
   if (!projection) return [];
   const tableByEntity = new Map((projection.dbTables || []).map((entry) => [entry.entity?.id, entry.table]));
   const columnByEntityField = new Map((projection.dbColumns || []).map((entry) => [`${entry.entity?.id}:${entry.field}`, entry.column]));
@@ -247,7 +249,7 @@ function tablesFromGraph(context) {
 
 function renderProviderPrismaSchema(context) {
   const tables = tablesForContext(context);
-  if (tables.length === 0) return renderPrismaSchema((context.runtime || context.component || {}));
+  if (tables.length === 0) return renderPrismaSchema(context.runtime || {});
   const lines = [
     "generator client {",
     '  provider = "prisma-client-js"',
@@ -655,7 +657,7 @@ function renderServerApp(contract, implementation, context) {
 function renderServerIndex(context, implementation) {
   const repositoryReference = implementation.backend.repositoryReference;
   const serviceName = implementation.backend.reference?.serviceName || context.projection.id;
-  const defaultPort = Number((context.runtime || context.component)?.port || 3000);
+  const defaultPort = Number((context.runtime || {}).port || 3000);
   return `import { serve } from "@hono/node-server";
 import { PrismaClient } from "@prisma/client";
 import { createApp } from "./lib/server/app";
@@ -714,11 +716,12 @@ function generateProviderBacked(context) {
 
 function generate(context) {
   const projection = context.projection;
+  const runtime = context.runtime || {};
   const routes = projection ? routesForContext(context, projection) : [];
   if (!projection || routes.length === 0) {
     throw new Error("Hono API generator requires an API projection with endpoints.");
   }
-  const hasDatabase = Boolean((context.runtime || context.component)?.databaseComponent);
+  const hasDatabase = Boolean(runtime.databaseComponent);
   if (hasDatabase) {
     const providerFiles = generateProviderBacked(context);
     if (providerFiles) {
@@ -738,14 +741,14 @@ function generate(context) {
   const files = {
     "package.json": renderPackageJson({ hasDatabase }),
     "tsconfig.json": renderTsconfig(),
-    "src/index.ts": renderIndexTs(projection, (context.runtime || context.component || {}), routes, { hasDatabase }),
+    "src/index.ts": renderIndexTs(projection, runtime, routes, { hasDatabase }),
     "src/lib/topogram/server-contract.json": `${JSON.stringify(context.contracts?.server || { projection }, null, 2)}\n`,
     "src/lib/topogram/api-contracts.json": `${JSON.stringify(context.contracts?.api || {}, null, 2)}\n`
   };
   if (hasDatabase) {
-    files["src/lib/persistence/repository.ts"] = renderPersistenceRepository((context.runtime || context.component || {}));
-    files["src/lib/persistence/README.md"] = `This service is wired to Topogram database runtime \`${(context.runtime || context.component).databaseComponent.id}\`.\n\nThe generated repository is a contract boundary for agents and implementation providers. Replace it with real persistence code when maintaining the app.\n`;
-    files["prisma/schema.prisma"] = renderPrismaSchema((context.runtime || context.component || {}));
+    files["src/lib/persistence/repository.ts"] = renderPersistenceRepository(runtime);
+    files["src/lib/persistence/README.md"] = `This service is wired to Topogram database runtime \`${runtime.databaseComponent.id}\`.\n\nThe generated repository is a contract boundary for agents and implementation providers. Replace it with real persistence code when maintaining the app.\n`;
+    files["prisma/schema.prisma"] = renderPrismaSchema(runtime);
     files[".env.example"] = "DATABASE_URL=postgresql://postgres@localhost:5432/topogram\n";
   }
   return {
