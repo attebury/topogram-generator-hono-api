@@ -78,7 +78,7 @@ const adapter = await import(path.join(root, "index.cjs"));
 const dbBacked = adapter.default.generate({
   graph: {},
   projection: { id: "proj_api", endpoints: [{ method: "GET", path: "/hello", capabilityId: "cap_get_hello", success: 200 }] },
-  runtime: { id: "app_api", kind: "api_service", port: 3000, databaseComponent: { id: "app_postgres" } }
+  runtime: { id: "app_api", kind: "api_service", port: 3000, databaseRuntime: { id: "app_postgres" } }
 });
 assert.equal(typeof dbBacked.files["prisma/schema.prisma"], "string", "Expected DB-backed Hono generation to include persistence scaffold");
 assert.equal(typeof dbBacked.files["src/lib/persistence/repository.ts"], "string", "Expected DB-backed Hono generation to include repository boundary");
