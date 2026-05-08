@@ -1,6 +1,6 @@
 {
   "name": "@topogram/generator-hono-api",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "description": "Package-backed Topogram generator for Hono API services.",
   "license": "UNLICENSED",
   "private": false,
